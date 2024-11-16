@@ -32,7 +32,7 @@ public class CandidatoController {
         return candidatoServices.buscarCandidatoPorId(id);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public Candidato guardarCandidato(@RequestParam("candidato")String candidatoJson,
                                       @RequestParam("file") MultipartFile file) throws IOException {

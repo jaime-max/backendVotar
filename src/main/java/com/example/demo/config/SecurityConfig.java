@@ -39,7 +39,7 @@ public class SecurityConfig {
                                 // Permitir sin autenticación las rutas de login y registro de usuarios
                                 .requestMatchers("/api/usuarios", "/api/usuarios/login").permitAll()
                                 // Requiere autenticación para las rutas de CRUD de candidatos
-                                .requestMatchers("/api/candidatos/**").authenticated()
+                                //.requestMatchers("/api/candidatos/**").authenticated()
                                 // Otras rutas permitidas sin autenticación
                                 .anyRequest().permitAll()
                 )
