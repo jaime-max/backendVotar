@@ -80,28 +80,26 @@ public class UsuarioImplement implements UsuarioService, UserDetailsService {
 
     @Override
     public LoginResponse login(String username, String password) {
-        // Intentar encontrar al usuario por nombre
+        // Busca al usuario en la base de datos por su nombre de usuario.
         Usuario usuario = usuarioRepository.findByNombre(username).orElse(null);
 
-        // Depuración: Si el usuario no se encuentra, imprimir mensaje
+        // Caso 1: El usuario no existe en la base de datos.
         if (usuario == null) {
-            System.out.println("Usuario no encontrado con el nombre: " + username); // Mensaje de depuración
-            return new LoginResponse("Credenciales inválidas");  // Responder con un mensaje genérico
+            // Verificar si también la contraseña es incorrecta para este caso.
+            if (password == null || password.isEmpty()) {
+                return new LoginResponse(null, "Usuario y contraseña incorrectos");
+            }
+            return new LoginResponse(null, "Usuario incorrecto");
         }
-        // Depuración: Si el usuario es encontrado, mostrar el nombre
-        System.out.println("Usuario encontrado: " + usuario.getNombre()); // Mensaje de depuración
 
-        // Verificar la contraseña con Argon2PasswordEncoder
-        if (passwordEncoder.matches(password, usuario.getPassword())) {
-            System.out.println("Contraseña correcta, generando token..."); // Mensaje de depuración
-            // Generación del token JWT
-            String token = jwtUtil.create(usuario.getId().toString(), usuario.getNombre());
-            System.out.println("Token generado: " + token); // Mensaje de depuración
-            return new LoginResponse(token);  // Retornar el token
-        } else {
-            System.out.println("Contraseña incorrecta"); // Mensaje de depuración
-            return new LoginResponse("Contraseña incorrecta"); // Responder con mensaje de error
+        // Caso 2: El usuario existe, pero la contraseña es incorrecta.
+        if (!passwordEncoder.matches(password, usuario.getPassword())) {
+            return new LoginResponse(null, "Contraseña incorrecta");
         }
+
+        // Caso 3: Usuario y contraseña correctos.
+        String token = jwtUtil.create(usuario.getId().toString(), usuario.getNombre());
+        return new LoginResponse(token, null); // Retorna el token generado y ningún mensaje de error.
     }
 
     @Override
