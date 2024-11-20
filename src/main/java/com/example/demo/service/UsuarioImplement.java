@@ -145,6 +145,11 @@ public class UsuarioImplement implements UsuarioService, UserDetailsService {
         }
     }
 
+    @Override
+    public Usuario buscarUsuarioPorNombre(String username) {
+        return usuarioRepository.findByNombre(username).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+    }
 
 
     // Implementación de UserDetailsService para la autenticación de Spring Security

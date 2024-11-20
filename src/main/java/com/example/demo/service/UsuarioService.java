@@ -15,5 +15,5 @@ public interface UsuarioService {
     void eliminarUsuario(Long id);
     // Agregar el método cambiarContraseña
     Usuario cambiarContrasena(CambiarContrasena cambioContrasenaDTO);
-
+    Usuario buscarUsuarioPorNombre(String username);
 }

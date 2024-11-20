@@ -18,6 +18,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/api/usuarios")
+
 @CrossOrigin(origins = "http://localhost:5173")
 public class UsuarioController {
     @Autowired
@@ -75,5 +76,10 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-
+    // En UsuarioController
+    @GetMapping("/idPorNombre/{nombre}")
+    public Long obtenerIdPorNombre(@PathVariable String nombre) {
+        Usuario usuario = usuarioService.buscarUsuarioPorNombre(nombre);
+        return usuario.getId(); // Retorna el ID del usuario
+    }
 }
