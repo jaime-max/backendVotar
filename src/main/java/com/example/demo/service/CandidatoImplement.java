@@ -99,15 +99,23 @@ public class CandidatoImplement implements CandidatoServices {
 
     public String savePhoto(MultipartFile file) throws IOException {
         try {
+            // Genera un nombre único para el archivo utilizando UUID
             String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+
+            // Define la ruta donde se guardará el archivo
             Path filePath = Paths.get(uploadDir + fileName);
+
+            // Copia el archivo a la ruta definida
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            return fileName;// Devuelve el nombre del archivo o su ruta para almacenarla en la base de datos
-        }catch (IOException e) {
+
+            // Devuelve la URL pública de la imagen
+            return "http://localhost:8080/uploads/" + fileName; // O la URL de producción correspondiente
+        } catch (IOException e) {
             log.error("Error al guardar el archivo: {}", e.getMessage());
             throw new IOException("No se pudo guardar la foto, por favor intenta nuevamente.", e);
         }
     }
+
     @PostConstruct
     public void init() {
         try {
@@ -116,6 +124,4 @@ public class CandidatoImplement implements CandidatoServices {
             log.error("Error al crear el directorio de cargas: {}", e.getMessage());// Maneja el error apropiadamente
         }
     }
-
-
 }

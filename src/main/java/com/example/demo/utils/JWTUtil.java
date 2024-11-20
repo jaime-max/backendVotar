@@ -11,8 +11,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
+import java.util.Base64;  // Importación de Base64
 import java.util.Date;
 
 @Component
@@ -26,8 +26,7 @@ public class JWTUtil {
     @Value("${security.jwt.ttlMillis}")
     private long ttlMillis;
 
-    private final Logger log = LoggerFactory
-            .getLogger(JWTUtil.class);
+    private final Logger log = LoggerFactory.getLogger(JWTUtil.class);
 
     /**
      * Create a new token.
@@ -44,11 +43,11 @@ public class JWTUtil {
         long nowMillis = System.currentTimeMillis();
         Date now = new Date(nowMillis);
 
-        //  sign JWT with our ApiKey secret
-        byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(key);
+        // Sign JWT with our ApiKey secret
+        byte[] apiKeySecretBytes = Base64.getDecoder().decode(key); // Reemplazado DatatypeConverter
         Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
 
-        //  set the JWT Claims
+        // Set the JWT Claims
         JwtBuilder builder = Jwts.builder().setId(id).setIssuedAt(now).setSubject(subject).setIssuer(issuer)
                 .signWith(signatureAlgorithm, signingKey);
 
@@ -69,7 +68,7 @@ public class JWTUtil {
      * @return
      */
     public String extractUsername(String jwt) {
-        Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(key))
+        Claims claims = Jwts.parser().setSigningKey(Base64.getDecoder().decode(key))  // Reemplazado DatatypeConverter
                 .parseClaimsJws(jwt).getBody();
         return claims.getSubject(); // Devuelve el 'subject' que se debe configurar como nombre de usuario
     }
@@ -81,7 +80,7 @@ public class JWTUtil {
      * @return
      */
     public String extractUserId(String jwt) {
-        Claims claims = Jwts.parser().setSigningKey(DatatypeConverter.parseBase64Binary(key))
+        Claims claims = Jwts.parser().setSigningKey(Base64.getDecoder().decode(key))  // Reemplazado DatatypeConverter
                 .parseClaimsJws(jwt).getBody();
         return claims.getId(); // Devuelve el 'id', que podría ser el ID del usuario
     }
@@ -93,11 +92,10 @@ public class JWTUtil {
 
     private boolean isTokenExpired(String jwt) {
         Date expirationDate = Jwts.parser()
-                .setSigningKey(DatatypeConverter.parseBase64Binary(key))
+                .setSigningKey(Base64.getDecoder().decode(key))  // Reemplazado DatatypeConverter
                 .parseClaimsJws(jwt)
                 .getBody()
                 .getExpiration();
         return expirationDate.before(new Date());
     }
-
 }

@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.DTO.CambiarContrasena;
 import com.example.demo.DTO.LoginResponse;
 import com.example.demo.entity.Usuario;
 import com.example.demo.repository.UsuarioRepository;
@@ -78,6 +79,7 @@ public class UsuarioImplement implements UsuarioService, UserDetailsService {
         }
     }
 
+
     @Override
     public LoginResponse login(String username, String password) {
         // Busca al usuario en la base de datos por su nombre de usuario.
@@ -118,6 +120,32 @@ public class UsuarioImplement implements UsuarioService, UserDetailsService {
             log.error("Error al eliminar usuario: {}", e.getMessage());
         }
     }
+
+
+    @Override
+    public Usuario cambiarContrasena(CambiarContrasena cambioContrasenaDTO) {
+        try {
+            // Buscar el usuario por el ID
+            Usuario usuario = usuarioRepository.findById(cambioContrasenaDTO.getIdUsuario())
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+            // Verificar si la contraseña antigua es correcta
+            if (!passwordEncoder.matches(cambioContrasenaDTO.getContrasenaAntigua(), usuario.getPassword())) {
+                throw new IllegalArgumentException("La contraseña antigua no es correcta.");
+            }
+
+            // Establecer la nueva contraseña
+            usuario.setPassword(passwordEncoder.encode(cambioContrasenaDTO.getNuevaContrasena()));
+
+            // Guardar al usuario con la nueva contraseña
+            return usuarioRepository.save(usuario);
+        } catch (Exception e) {
+            // Manejo de errores si la contraseña antigua no coincide o el usuario no se encuentra
+            return null;
+        }
+    }
+
+
 
     // Implementación de UserDetailsService para la autenticación de Spring Security
     @Override

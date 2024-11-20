@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.DTO.CambiarContrasena;
 import com.example.demo.DTO.LoginRequest;
 import com.example.demo.DTO.LoginResponse;
 import com.example.demo.entity.Usuario;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -62,6 +64,16 @@ public class UsuarioController {
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         LoginResponse response = usuarioService.login(loginRequest.getUsername(), loginRequest.getPassword());
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/cambiarContrasena")
+    public ResponseEntity<Usuario> cambiarContrasena(@RequestBody CambiarContrasena cambioContrasenaDTO) {
+        Usuario usuarioActualizado = usuarioService.cambiarContrasena(cambioContrasenaDTO);
+        if (usuarioActualizado != null) {
+            return ResponseEntity.ok(usuarioActualizado);
+        } else {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 
 }

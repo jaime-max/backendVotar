@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.DTO.CambiarContrasena;
 import com.example.demo.DTO.LoginResponse;
 import com.example.demo.entity.Usuario;
 
@@ -12,4 +13,7 @@ public interface UsuarioService {
     Usuario actualizarUsuario(Usuario usuario);
     Usuario buscarUsuarioPorId(Long id);
     void eliminarUsuario(Long id);
+    // Agregar el método cambiarContraseña
+    Usuario cambiarContrasena(CambiarContrasena cambioContrasenaDTO);
+
 }
