@@ -27,6 +27,9 @@ public class UsuarioImplement implements UsuarioService, UserDetailsService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
+    private EmailService emailService;
+
+    @Autowired
     @Lazy
     private JWTUtil jwtUtil;
 
@@ -62,15 +65,26 @@ public class UsuarioImplement implements UsuarioService, UserDetailsService {
     public Usuario actualizarUsuario(Usuario usuarioNuevo) {
         try {
             Usuario usuarioActual = buscarUsuarioPorId(usuarioNuevo.getId());
+
+            // Verificar si el nombre de usuario ha cambiado
+            boolean nombreChanged = !usuarioActual.getNombre().equals(usuarioNuevo.getNombre());
+
             usuarioActual.setNombre(usuarioNuevo.getNombre());
             usuarioActual.setApellido(usuarioNuevo.getApellido());
             usuarioActual.setEmail(usuarioNuevo.getEmail());
             usuarioActual.setTelefono(usuarioNuevo.getTelefono());
+
             if (usuarioNuevo.getPassword() != null) {
                 usuarioActual.setPassword(passwordEncoder.encode(usuarioNuevo.getPassword()));
             }
+
             Usuario usuarioActualizado = usuarioRepository.save(usuarioActual);
-            // Mensaje de éxito al actualizar
+
+            // Si el nombre de usuario cambió, indicamos que se debe cerrar la sesión
+            if (nombreChanged) {
+                log.info("Nombre de usuario cambiado. La sesión debe cerrarse.");
+                // Aquí podríamos enviar algún tipo de señal al frontend para invalidar el token
+            }
             log.info("Usuario con ID {} actualizado exitosamente.", usuarioActualizado.getId());
             return usuarioActualizado;
         }catch (Exception e) {
@@ -82,6 +96,11 @@ public class UsuarioImplement implements UsuarioService, UserDetailsService {
 
     @Override
     public LoginResponse login(String username, String password) {
+        // Verificar si el nombre de usuario es válido
+        if (username == null || username.isEmpty()) {
+            return new LoginResponse(null, "Usuario incorrecto");
+        }
+        log.info("Iniciando sesión para el usuario: {}", username);
         // Busca al usuario en la base de datos por su nombre de usuario.
         Usuario usuario = usuarioRepository.findByNombre(username).orElse(null);
 
@@ -138,7 +157,14 @@ public class UsuarioImplement implements UsuarioService, UserDetailsService {
             usuario.setPassword(passwordEncoder.encode(cambioContrasenaDTO.getNuevaContrasena()));
 
             // Guardar al usuario con la nueva contraseña
-            return usuarioRepository.save(usuario);
+            Usuario usuarioActualizado = usuarioRepository.save(usuario);
+
+            // Enviar correo de confirmación
+            String subject = "Cambio de contraseña exitoso";
+            String text = "Hola " + usuario.getNombre() + ",\n\nTu contraseña ha sido cambiada exitosamente.";
+            emailService.enviarCorreo(usuario.getEmail(), subject, text);
+
+            return usuarioActualizado;
         } catch (Exception e) {
             // Manejo de errores si la contraseña antigua no coincide o el usuario no se encuentra
             return null;
@@ -146,16 +172,16 @@ public class UsuarioImplement implements UsuarioService, UserDetailsService {
     }
 
     @Override
-    public Usuario buscarUsuarioPorNombre(String username) {
-        return usuarioRepository.findByNombre(username).orElseThrow(() ->
+    public Usuario buscarUsuarioPorNombre(String nombre) {
+        return usuarioRepository.findByNombre(nombre).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
     }
 
 
     // Implementación de UserDetailsService para la autenticación de Spring Security
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Usuario usuario = usuarioRepository.findByNombre(username)
+    public UserDetails loadUserByUsername(String nombre) throws UsernameNotFoundException {
+        Usuario usuario = usuarioRepository.findByNombre(nombre)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
         // Adaptación del usuario a UserDetails con rol de ADMIN si isAdmin es true

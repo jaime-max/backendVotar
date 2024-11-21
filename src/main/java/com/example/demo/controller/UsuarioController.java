@@ -40,12 +40,18 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
     @PutMapping("/{id}")
     public ResponseEntity <Usuario> editarUser(@PathVariable Long id, @RequestBody Usuario usuario) {
         try {
             usuario.setId(id);
             Usuario usuarioActualizado = usuarioService.actualizarUsuario(usuario);
             if (usuarioActualizado != null) {
+                // Si el nombre de usuario cambió, indicar que se debe cerrar la sesión
+                boolean nombreChanged = !usuario.getNombre().equals(usuarioActualizado.getNombre());
+                if (nombreChanged) {
+                    return ResponseEntity.status(HttpStatus.OK).body(usuarioActualizado);
+                }
                 return ResponseEntity.ok(usuarioActualizado);
             }else{
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -64,6 +70,9 @@ public class UsuarioController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         LoginResponse response = usuarioService.login(loginRequest.getUsername(), loginRequest.getPassword());
+        if (response.getToken() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
         return ResponseEntity.ok(response);
     }
 
