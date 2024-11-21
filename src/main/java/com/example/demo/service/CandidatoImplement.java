@@ -29,7 +29,6 @@ public class CandidatoImplement implements CandidatoServices {
 
     @Override
     public List<Candidato> ListarCandidatos() {
-
         return candidatoRepository.findAllByOrderByIdAsc();
     }
 
