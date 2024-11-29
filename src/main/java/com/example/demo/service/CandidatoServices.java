@@ -11,8 +11,7 @@ public interface CandidatoServices {
     Candidato registrarCandidato(Candidato candidato, MultipartFile file) throws IOException;
     Candidato buscarCandidatoPorId(Long id);
     Candidato actualizarCandidato(Candidato candidato, MultipartFile file) throws IOException;
-    Candidato votarPorCandidato(Long id);
+    void votarPorCandidato(Long id, String cedulaDocument);
     Integer TotalVotos();
     void deleteCandidato(Long id);
-
 }

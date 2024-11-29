@@ -1,7 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Candidato;
+import com.example.demo.entity.Votante;
 import com.example.demo.repository.CandidatoRepository;
+import com.example.demo.repository.VotanteRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +27,17 @@ public class CandidatoImplement implements CandidatoServices {
     @Autowired
     private CandidatoRepository candidatoRepository;
 
+    @Autowired
+    private VotanteRepository votanteRepository;
+
+    @Autowired
+    private VotantesServiceImplement votantesService;
+
     private final String uploadDir = "uploads/";
 
     @Override
     public List<Candidato> ListarCandidatos() {
+
         return candidatoRepository.findAllByOrderByIdAsc();
     }
 
@@ -72,10 +81,32 @@ public class CandidatoImplement implements CandidatoServices {
     }
 
     @Override
-    public Candidato votarPorCandidato(Long id) {
+    public void votarPorCandidato(Long id, String cedulaDoc) {
+        // Verificar si el votante está en la lista de votantes
+        if (!votantesService.verificarVotante(cedulaDoc)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No estás autorizado a votar");
+        }
+
+        // Obtener el votante y verificar si ya ha votado
+        Votante votante = votanteRepository.findByCedula(cedulaDoc)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Votante no encontrado"));
+
+        // Si el votante ya ha votado, no permitir votar nuevamente
+        if (votante.isVotado()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya has votado, no puedes votar nuevamente.");
+        }
+
+        // Si el votante no ha votado, permitirle votar
         Candidato candidato = buscarCandidatoPorId(id);
         candidato.setVotos(candidato.getVotos() + 1);
-        return candidatoRepository.save(candidato);
+        candidatoRepository.save(candidato);
+
+        // Actualizar el campo "votado" del votante
+        votante.setVotado(true);
+        votanteRepository.save(votante);
+
+        // Log para seguimiento
+        log.info("Cédula {} ha votado por el candidato {}", cedulaDoc, candidato.getNombre());
     }
 
     @Override
