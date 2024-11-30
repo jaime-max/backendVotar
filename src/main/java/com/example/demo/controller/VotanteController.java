@@ -59,7 +59,7 @@ public class VotanteController {
         // Verificar si el votante está autorizado
         if (!votanteService.verificarVotante(cedulaDoc)) {
             response.put("status", "error");
-            response.put("message", "No estás autorizado a votar.");
+            response.put("message", "Credenciales Incorrectas.");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
         }
 
