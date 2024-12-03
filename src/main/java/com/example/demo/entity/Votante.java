@@ -13,6 +13,8 @@ public class Votante {
     private String cedula;
     private String nombre;
     @Column(nullable = false)
-    private boolean votado= false; // Agrega este campo para saber si el votante ya ha votado
+    private boolean votado= false; // si el votante ya ha votado
+    @Column(nullable = false)
+    private boolean descartado = false; // Si el votante fue descartado
 
 }

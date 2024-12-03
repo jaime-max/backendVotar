@@ -82,11 +82,10 @@ public class CandidatoImplement implements CandidatoServices {
 
     @Override
     public void votarPorCandidato(Long id, String cedulaDoc) {
-        // Verificar si el votante está en la lista de votantes
+        // Verificar si el votante NO está autorizado
         if (!votantesService.verificarVotante(cedulaDoc)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No estás autorizado a votar");
         }
-
         // Obtener el votante y verificar si ya ha votado
         Votante votante = votanteRepository.findByCedula(cedulaDoc)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Votante no encontrado"));

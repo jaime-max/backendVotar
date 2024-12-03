@@ -14,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -27,7 +26,7 @@ public class VotanteController {
     @Autowired
     private VotanteRepository votanteRepository;
 
-    @GetMapping
+    @GetMapping("/todos")
     public List<Votante> ListVotante() {
         return votanteService.getVotantes();
     }
@@ -55,17 +54,16 @@ public class VotanteController {
     public ResponseEntity<Map<String, String>> validarVotante(@RequestBody Map<String, String> payload) {
         String cedulaDoc = payload.get("cedula");
         Map<String, String> response = new HashMap<>();
-
-        // Verificar si el votante está autorizado
-        if (!votanteService.verificarVotante(cedulaDoc)) {
-            response.put("status", "error");
-            response.put("message", "Credenciales Incorrectas.");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-        }
-
         // Verificar si el votante existe
         Votante votante = votanteRepository.findByCedula(cedulaDoc)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Votante no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No constas en la lista de votantes."));
+
+        //Verificar si el votante esta descartado
+        if(votante.isDescartado()){
+            response.put("status", "error");
+            response.put("message", "No puedes votar, estas descartado");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
 
         // Verificar si el votante ya ha votado
         if (votante.isVotado()) {
@@ -74,11 +72,39 @@ public class VotanteController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
+        // Verificar si el votante está autorizado
+        if (!votanteService.verificarVotante(cedulaDoc)) {
+            response.put("status", "error");
+            response.put("message", "Credenciales Incorrectas.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+
         // Si pasa todas las validaciones
         response.put("status", "success");
         response.put("message", "El votante está autorizado para votar.");
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{id}/descartar")
+    public ResponseEntity<Map<String, String>> descartarVotante(@PathVariable Long id) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            votanteService.descartarVotante(id);
+            response.put("status", "success");
+            response.put("message", "El votante ha sido descartado exitosamente.");
+            return ResponseEntity.ok(response);
+        } catch (ResponseStatusException e) {
+            response.put("status", "error");
+            response.put("message", e.getReason());
+            return ResponseEntity.status(e.getStatusCode()).body(response);
+        }
+    }
+
+    @GetMapping("/no-descartados")
+    public List<Votante> ListVotantesNodescartados() {
+        return votanteService.getVotanteNoDescartado();
+    }
+
 
 
 }

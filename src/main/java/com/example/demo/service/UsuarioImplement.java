@@ -152,6 +152,10 @@ public class UsuarioImplement implements UsuarioService, UserDetailsService {
             if (!passwordEncoder.matches(cambioContrasenaDTO.getContrasenaAntigua(), usuario.getPassword())) {
                 throw new IllegalArgumentException("La contraseña antigua no es correcta.");
             }
+            // Validar que la nueva contraseña y la repetición coincidan
+            if (!cambioContrasenaDTO.getNuevaContrasena().equals(cambioContrasenaDTO.getRepetirNuevaContrasena())) {
+                throw new IllegalArgumentException("La nueva contraseña y la repetición no coinciden.");
+            }
 
             // Establecer la nueva contraseña
             usuario.setPassword(passwordEncoder.encode(cambioContrasenaDTO.getNuevaContrasena()));

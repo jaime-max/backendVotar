@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
@@ -85,7 +86,8 @@ public class VotantesServiceImplement implements VotanteService {
 
     @Override
     public boolean verificarVotante(String cedula) {
-        return votanteRepository.findByCedula(cedula).isPresent();
+        Optional<Votante> votante = votanteRepository.findByCedula(cedula);
+        return votante.isPresent() && !votante.get().isDescartado();
     }
 
     @Override
@@ -107,14 +109,29 @@ public class VotantesServiceImplement implements VotanteService {
     @Override
     public Votante buscarVotantePorId(Long id) {
         return votanteRepository.findById(id).orElseThrow(()
-                -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Votante no encontrado"));
+                -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Votante no encontrado "));
     }
 
     @Override
     public boolean todosHanVotado() {
-        long totalVotantes = votanteRepository.count(); // Total de votantes
+        long totalVotantes = votanteRepository.countByDescartadoFalse(); // Solo los no descartados
         long votantesQueHanVotado = votanteRepository.countByVotadoTrue(); // Votantes que han votado
         return totalVotantes == votantesQueHanVotado; // Si los totales coinciden, todos han votado
+    }
+
+    @Override
+    public void descartarVotante(Long id) {
+        Votante votante = buscarVotantePorId(id);
+        if(votante.isVotado()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se puede descartar un votante que ya ha votado.");
+        }
+        votante.setDescartado(true);
+        votanteRepository.save(votante);
+    }
+
+    @Override
+    public List<Votante> getVotanteNoDescartado() {
+        return votanteRepository.findByDescartadoFalseOrderByIdAsc();
     }
 }
 

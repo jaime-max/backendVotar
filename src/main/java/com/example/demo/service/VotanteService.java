@@ -1,6 +1,5 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.Usuario;
 import com.example.demo.entity.Votante;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,4 +14,7 @@ public interface VotanteService {
     void deleteVotante(Long id);
     Votante buscarVotantePorId(Long id);
     boolean todosHanVotado();
+    void descartarVotante(Long id);
+
+    List<Votante> getVotanteNoDescartado();
 }

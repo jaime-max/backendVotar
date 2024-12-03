@@ -17,4 +17,10 @@ public interface VotanteRepository extends JpaRepository<Votante, Long> {
 
     // Contar cuántos votantes han votado
     long countByVotadoTrue(); // Método para contar los votantes que han votado
+
+    // Método para contar solo los votantes que no están descartados
+    long countByDescartadoFalse();
+
+    // Método para obtener todos los votantes no descartados
+    List<Votante> findByDescartadoFalseOrderByIdAsc();
 }
